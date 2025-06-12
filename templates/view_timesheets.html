@@ -1,0 +1,29 @@
+<!-- File: templates/view_timesheets.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Timesheets for {{ user }}</title>
+</head>
+<body>
+  <h1>Timesheets for {{ user }}</h1>
+<table border="1" cellpadding="5">
+  <tr>
+    <th>Date</th>
+    <th>Time</th>
+    <th>Hours</th>
+    <th>Description</th>
+  </tr>
+  {% for row_id, date, time, hours, desc in rows %}
+  <tr>
+    <td>{{ date }}</td>
+    <td>{{ time }}</td>
+    <td>{{ hours }}</td>
+    <td>{{ desc }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+  <p><a href="{{ url_for('export_user', user=user) }}">Export User Timesheet (CSV)</a></p>
+  <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>

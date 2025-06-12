@@ -1,0 +1,56 @@
+<!-- File: templates/admin_dashboard.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard - ASC Timesheet</title>
+</head>
+<body>
+  <h1>Admin Dashboard</h1>
+  <p>Logged in as <strong>{{ session['user'] }}</strong></p>
+
+  <h2>Add / Manage Users</h2>
+  <form action="{{ url_for('add_user') }}" method="post">
+    <input name="new_username" placeholder="Username" required>
+    <input name="new_password" type="password" placeholder="Password" required>
+    <select name="new_role">
+      <option value="user">User</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button type="submit">Add User</button>
+  </form>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul>
+      {% for category, msg in messages %}
+        <li style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ msg }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <h3>Existing Users</h3>
+  <table border="1" cellpadding="5">
+    <tr><th>User</th><th>Role</th><th>Actions</th></tr>
+    {% for u, r in users %}
+    <tr>
+      <td>{{ u }}</td>
+      <td>{{ r }}</td>
+      <td>
+        <a href="{{ url_for('view', user=u) }}">View Timesheets</a> |
+        <a href="{{ url_for('delete_user', user=u) }}">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <h2>Filter by Date Range</h2>
+  <form action="{{ url_for('filter_timesheets') }}" method="get">
+    <label>From:</label><input type="date" name="start_date">  
+    <label>To:</label><input type="date" name="end_date">
+    <button type="submit">Filter</button>
+  </form>
+
+  <p><a href="{{ url_for('export_all') }}">Export All Timesheets (CSV)</a></p>
+  <p><a href="{{ url_for('logout') }}">Logout</a></p>
+</body>
+</html>

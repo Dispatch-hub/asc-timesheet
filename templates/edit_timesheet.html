@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><title>Edit Timesheet</title></head>
+<body>
+  <h1>Edit Timesheet Entry</h1>
+  <form method="post">
+    <label>Date:</label><input type="date" name="date" value="{{ entry[0] }}"><br><br>
+    <label>Time:</label><input type="time" name="time" value="{{ entry[1] }}"><br><br>
+    <label>Hours:</label><input type="number" name="hours" step="0.1" value="{{ entry[2] }}"><br><br>
+    <label>Description:</label><input type="text" name="description" value="{{ entry[3] }}"><br><br>
+    <button type="submit">Update</button>
+  </form>
+  <p><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></p>
+</body>
+</html>
