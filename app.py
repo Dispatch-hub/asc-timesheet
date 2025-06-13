@@ -255,6 +255,26 @@ def view(user):
     rows = c.fetchall()
     conn.close()
     return render_template('view_timesheets.html', user=user, rows=rows)
+@app.route('/edit/<int:entry_id>', methods=['GET', 'POST'])
+def edit_timesheet(entry_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    if request.method == 'POST':
+        new_date = request.form['date']
+        new_time = request.form['time']
+        new_hours = request.form['hours']
+        new_desc = request.form['description']
+        c.execute("UPDATE timesheets SET date=?, time=?, hours_worked=?, description=? WHERE id=?",
+                  (new_date, new_time, new_hours, new_desc, entry_id))
+        conn.commit()
+        conn.close()
+        flash("Timesheet updated!", "success")
+        return redirect(url_for('dashboard'))
+    else:
+        c.execute("SELECT date, time, hours_worked, description FROM timesheets WHERE id=?", (entry_id,))
+        row = c.fetchone()
+        conn.close()
+        return render_template('edit_timesheet.html', entry_id=entry_id, entry=row)
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0")
