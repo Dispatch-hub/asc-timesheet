@@ -272,9 +272,20 @@ def edit_timesheet(entry_id):
         return redirect(url_for('dashboard'))
     else:
         c.execute("SELECT date, time, hours_worked, description FROM timesheets WHERE id=?", (entry_id,))
-        row = c.fetchone()
+        entry = c.fetchone()
         conn.close()
-        return render_template('edit_timesheet.html', entry_id=entry_id, entry=row)
+        return render_template('edit_timesheet.html', entry=entry, entry_id=entry_id)
+
+@app.route('/delete/<int:entry_id>')
+def delete_timesheet(entry_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM timesheets WHERE id=?", (entry_id,))
+    conn.commit()
+    conn.close()
+    flash("Timesheet entry deleted.", "success")
+    return redirect(url_for('dashboard'))
+
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0")
