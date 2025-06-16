@@ -1,64 +1,37 @@
-<!-- File: templates/user_dashboard.html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>User Dashboard - {{ username }}</title>
+    <title>User Dashboard - Alberta Safety</title>
 </head>
-<body>
-  <h1>Welcome, {{ username }}</h1>
+<body style="background:#fff7e6; font-family:sans-serif;">
+    <h1>Welcome {{ username }} – Alberta Safety</h1>
+    <a href="{{ url_for('logout') }}">Logout</a> |
+    <a href="{{ url_for('export_user', username=username) }}">Export My Timesheets</a>
 
-  <h2>Submit Timesheet Entry</h2>
-  <form action="{{ url_for('submit') }}" method="post">
-    <label>Date:</label><input type="date" name="date" value="{{ current_date }}"><br>
-    <label>Time:</label><input type="time" name="time" value="{{ current_time }}"><br>
-    <label>Hours Worked:</label><input name="hours" type="number" step="0.1" required><br>
-    <label>Description:</label><input name="description" required><br><br>
-    <button type="submit">Add Entry</button>
-  </form>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul>
-      {% for category, msg in messages %}
-        <li style="color: {% if category=='error' %}red{% else %}green{% endif %};">{{ msg }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+    <h2>Submit Timesheet</h2>
+    <form action="{{ url_for('submit') }}" method="POST">
+        <input type="date" name="date" required>
+        <input type="time" name="time" required>
+        <input type="number" name="hours" step="0.1" placeholder="Hours Worked" required>
+        <input name="description" placeholder="Work Description" required>
+        <button type="submit">Submit</button>
+    </form>
 
-<h2>Submit Timesheet Entry</h2>
-<form action="{{ url_for('submit') }}" method="post">
-  <label>Date:</label>
-  <input type="date" name="date" value="{{ current_date }}" required><br><br>
-
-  <label>Time:</label>
-  <input type="time" name="time" value="{{ current_time }}" required><br><br>
-
-  <label>Hours Worked:</label>
-  <input name="hours" type="number" step="0.1" required><br><br>
-
-  <label>Description:</label>
-  <input name="description" required><br><br>
-
-  <button type="submit">Submit Timesheet</button>
-</form>
-  {% if entries %}
-    <table border="1" cellpadding="5">
-      <tr><th>Date</th><th>Time</th><th>Hours</th><th>Description</th></tr>
-      {% for date,time,hours,desc in entries %}
-      <tr>
-        <td>{{ date }}</td>
-        <td>{{ time }}</td>
-        <td>{{ hours }}</td>
-        <td>{{ desc }}</td>
-      </tr>
-      {% endfor %}
+    <h2>Your Timesheets</h2>
+    <table border="1" cellpadding="6">
+        <tr><th>Date</th><th>Time</th><th>Hours</th><th>Description</th><th>Actions</th></tr>
+        {% for e in entries %}
+        <tr>
+            <td>{{ e[1] }}</td>
+            <td>{{ e[2] }}</td>
+            <td>{{ e[3] }}</td>
+            <td>{{ e[4] }}</td>
+            <td>
+                <a href="{{ url_for('edit_timesheet', entry_id=e[0]) }}">Edit</a> |
+                <a href="{{ url_for('delete_timesheet', entry_id=e[0]) }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
     </table>
-  {% else %}
-    <p>No entries yet.</p>
-  {% endif %}
-
-  <p><a href="{{ url_for('export_user', user=username) }}">Export My Timesheet (CSV)</a></p>
-  <p><a href="{{ url_for('logout') }}">Logout</a></p>
 </body>
 </html>
-
