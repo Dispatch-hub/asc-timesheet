@@ -106,6 +106,26 @@ def view(user):
 def logout():
     session.clear()
     return redirect(url_for('home'))
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    if 'user' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+
+    username = request.form['username']
+    password = request.form['password']
+    role = request.form['role']
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+                  (username, password, role))
+        conn.commit()
+        flash("✅ User added successfully!", "success")
+    except sqlite3.IntegrityError:
+        flash("⚠️ User already exists!", "error")
+    conn.close()
+    return redirect(url_for('dashboard'))
 
 if __name__=='__main__':
     app.run(debug=True)
