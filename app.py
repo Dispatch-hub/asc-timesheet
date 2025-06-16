@@ -222,31 +222,7 @@ def add_user():
     conn.close()
     return redirect(url_for('dashboard'))
 
-@app.route('/edit/<int:entry_id>', methods=['GET', 'POST'])
-def edit_timesheet(entry_id):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
 
-    if request.method == 'POST':
-        new_date = request.form['date']
-        new_time = request.form['time']
-        new_hours = request.form['hours']
-        new_desc = request.form['description']
-        c.execute("""
-            UPDATE timesheets
-            SET date=?, time=?, hours=?, description=?
-            WHERE id=?
-        """, (new_date, new_time, new_hours, new_desc, entry_id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('dashboard'))
-
-    # GET method
-    c.execute("SELECT date, time, hours, description FROM timesheets WHERE id=?", (entry_id,))
-    row = c.fetchone()
-    conn.close()
-
-    return render_template("edit_timesheet.html", entry_id=entry_id, entry=row)
 @app.route('/view/<user>')
 def view(user):
     conn = sqlite3.connect(DB_PATH)
