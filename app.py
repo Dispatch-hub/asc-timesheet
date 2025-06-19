@@ -354,6 +354,22 @@ def update_invoice_status(invoice_id):
     conn.close()
     flash("Invoice status updated successfully!", "success")
     return redirect(url_for('dashboard'))
+@app.route('/reset_password/<username>', methods=['GET', 'POST'])
+def reset_password(username):
+    if 'user' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("UPDATE users SET password=? WHERE username=?", (new_password, username))
+        conn.commit()
+        conn.close()
+        flash(f"Password for {username} updated successfully!", "success")
+        return redirect(url_for('dashboard'))
+
+    return render_template('reset_password.html', username=username)
 
 if __name__ == '__main__':
     app.run(debug=True)
