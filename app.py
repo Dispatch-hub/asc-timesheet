@@ -21,7 +21,7 @@ with sqlite3.connect(DB_PATH) as conn:
         pass
 
 app = Flask(__name__)
-config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+config = pdfkit.configuration()
 app.secret_key = 'alberta-safety-secret-key'
 
 # --- Ensure DB Exists ---
