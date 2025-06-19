@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 3px solid #c00;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        .company {
+            font-size: 22px;
+            color: #c00;
+            font-weight: bold;
+        }
+
+        .invoice-info {
+            text-align: right;
+            font-size: 14px;
+        }
+
+        h2 {
+            color: #c00;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #c00;
+            color: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .totals {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .totals td {
+            padding: 8px;
+            text-align: right;
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="company">
+        Alberta Safety Control
+    </div>
+    <div class="invoice-info">
+        <strong>Invoice #: </strong>{{ invoice.invoice_number }}<br>
+        <strong>Date: </strong>{{ invoice.date }}
+    </div>
+</div>
+
+<h2>Customer Information</h2>
+<p>
+    <strong>Customer:</strong> {{ invoice.customer }}<br>
+    <strong>Location:</strong> {{ invoice.location }}<br>
+    <strong>PO:</strong> {{ invoice.po }}<br>
+    <strong>AFE:</strong> {{ invoice.afe }}<br>
+    <strong>Customer Rep:</strong> {{ invoice.customer_rep }}<br>
+    <strong>Safety Rep:</strong> {{ invoice.safety_rep }}
+</p>
+
+<h2>Line Items</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Description</th>
+        <th>Rate</th>
+        <th>Qty</th>
+        <th>Total</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in invoice.line_items %}
+        <tr>
+            <td>{{ item.description }}</td>
+            <td>${{ "%.2f"|format(item.rate) }}</td>
+            <td>{{ item.qty }}</td>
+            <td>${{ "%.2f"|format(item.total) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<table class="totals">
+    <tr>
+        <td><strong>Subtotal:</strong></td>
+        <td>${{ "%.2f"|format(invoice.subtotal) }}</td>
+    </tr>
+    <tr>
+        <td><strong>GST (5%):</strong></td>
+        <td>${{ "%.2f"|format(invoice.gst) }}</td>
+    </tr>
+    <tr>
+        <td><strong>Total:</strong></td>
+        <td><strong>${{ "%.2f"|format(invoice.total) }}</strong></td>
+    </tr>
+</table>
+
+{% if invoice.notes %}
+    <h2>Notes</h2>
+    <p>{{ invoice.notes }}</p>
+{% endif %}
+
+{% if invoice.signature %}
+    <h2>Signature</h2>
+    <img src="{{ invoice.signature }}" alt="Signature" height="80">
+{% endif %}
+
+<div class="footer">
+    Thank you for your business.<br>
+    Alberta Safety Control | support@albertasafety.ca | 1-800-123-4567
+</div>
+
+</body>
+</html>

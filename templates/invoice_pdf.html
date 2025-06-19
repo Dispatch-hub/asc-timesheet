@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice PDF - {{ invoice.invoice_number }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #ff9800;
+    }
+    .header, .footer {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .info, .line-items, .totals {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .info td, .line-items th, .line-items td, .totals td {
+      border: 1px solid #999;
+      padding: 5px;
+    }
+    .line-items th {
+      background-color: #ffcc80;
+    }
+    .totals td {
+      font-weight: bold;
+    }
+    .notes {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Alberta Safety Control Inc.</h1>
+  <div class="header">
+    <p>BOX 1107 FOX CREEK, ALBERTA TOH 1P0</p>
+    <p>Dispatch: (780) 622-9330 | Office: (780) 548-2011</p>
+  </div>
+
+  <table class="info">
+    <tr><td>Invoice #</td><td>{{ invoice.invoice_number }}</td></tr>
+    <tr><td>Date</td><td>{{ invoice.date }}</td></tr>
+    <tr><td>Customer</td><td>{{ invoice.customer }}</td></tr>
+    <tr><td>Location</td><td>{{ invoice.location }}</td></tr>
+    <tr><td>PO #</td><td>{{ invoice.po }}</td></tr>
+    <tr><td>AFE #</td><td>{{ invoice.afe }}</td></tr>
+    <tr><td>Customer Rep</td><td>{{ invoice.customer_rep }}</td></tr>
+    <tr><td>Safety Rep</td><td>{{ invoice.safety_rep }}</td></tr>
+  </table>
+
+  <table class="line-items">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in invoice.line_items %}
+      <tr>
+        <td>{{ item.description }}</td>
+        <td>{{ item.qty }}</td>
+        <td>${{ "%.2f"|format(item.rate) }}</td>
+        <td>${{ "%.2f"|format(item.qty * item.rate) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr><td>Subtotal</td><td>${{ "%.2f"|format(invoice.subtotal) }}</td></tr>
+    <tr><td>GST</td><td>${{ "%.2f"|format(invoice.gst) }}</td></tr>
+    <tr><td>Total</td><td>${{ "%.2f"|format(invoice.total) }}</td></tr>
+  </table>
+
+  <div class="notes">
+    <p><strong>Notes:</strong> {{ invoice.notes }}</p>
+    <p><strong>Signature:</strong> {{ invoice.signature }}</p>
+  </div>
+
+  <div class="footer">
+    <p>GST #: 794191510RT0001</p>
+    <p>Thank you for your business!</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Invoice - Alberta Safety Control</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 40px;
+            background-color: #fff7f0;
+            color: #333;
+        }
+
+        h2 {
+            color: #d35400;
+            border-bottom: 2px solid #d35400;
+            padding-bottom: 5px;
+        }
+
+        input[type="text"], input[type="number"], input[type="date"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4a261;
+            color: white;
+        }
+
+        .btn {
+            background-color: #e67e22;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            margin-top: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #d35400;
+        }
+
+        .total-box {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        .action-link {
+            color: #e74c3c;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .action-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+    <script>
+        let lineItems = [];
+
+        function addItemRow() {
+            const desc = document.getElementById("item_desc").value;
+            const rate = parseFloat(document.getElementById("item_rate").value) || 0;
+            const qty = parseFloat(document.getElementById("item_qty").value) || 0;
+            const total = rate * qty;
+
+            if (!desc || rate <= 0 || qty <= 0) {
+                alert("Please fill valid item description, rate and quantity.");
+                return;
+            }
+
+            lineItems.push({ description: desc, rate: rate, qty: qty, total: total });
+
+            updateTable();
+            updateTotals();
+
+            document.getElementById("item_desc").value = '';
+            document.getElementById("item_rate").value = '';
+            document.getElementById("item_qty").value = '';
+        }
+
+        function removeItem(index) {
+            lineItems.splice(index, 1);
+            updateTable();
+            updateTotals();
+        }
+
+        function updateTable() {
+            const table = document.getElementById("line_items_body");
+            table.innerHTML = "";
+            lineItems.forEach((item, index) => {
+                table.innerHTML += `
+                    <tr>
+                        <td>${item.description}</td>
+                        <td>$${item.rate.toFixed(2)}</td>
+                        <td>${item.qty}</td>
+                        <td>$${item.total.toFixed(2)}</td>
+                        <td><span class="action-link" onclick="removeItem(${index})">Remove</span></td>
+                    </tr>`;
+            });
+
+            document.getElementById("line_items_data").value = JSON.stringify(lineItems);
+        }
+
+        function updateTotals() {
+            let subtotal = 0;
+            lineItems.forEach(item => subtotal += item.total);
+            const gst = subtotal * 0.05;
+            const total = subtotal + gst;
+
+            document.getElementById("subtotal").value = subtotal.toFixed(2);
+            document.getElementById("gst").value = gst.toFixed(2);
+            document.getElementById("total").value = total.toFixed(2);
+        }
+
+        window.onload = function () {
+            const today = new Date().toISOString().substr(0, 10);
+            document.getElementById("date").value = today;
+        };
+    </script>
+</head>
+<body>
+
+<h2>Create Invoice - Alberta Safety Control</h2>
+
+<form method="POST">
+    <input type="hidden" name="invoice_number" value="{{ invoice_number }}">
+    <div class="form-row">
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" name="date" id="date" required>
+        </div>
+        <div class="form-group">
+            <label>Customer</label>
+            <input type="text" name="customer" required>
+        </div>
+        <div class="form-group">
+            <label>Location</label>
+            <input type="text" name="location">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label>PO #</label>
+            <input type="text" name="po">
+        </div>
+        <div class="form-group">
+            <label>AFE #</label>
+            <input type="text" name="afe">
+        </div>
+        <div class="form-group">
+            <label>Customer Rep</label>
+            <input type="text" name="customer_rep">
+        </div>
+        <div class="form-group">
+            <label>Safety Rep</label>
+            <input type="text" name="safety_rep">
+        </div>
+    </div>
+
+    <h3>Add Line Items</h3>
+    <div class="form-row">
+        <div class="form-group"><input type="text" id="item_desc" placeholder="Description"></div>
+        <div class="form-group"><input type="number" id="item_rate" placeholder="Rate"></div>
+        <div class="form-group"><input type="number" id="item_qty" placeholder="Qty"></div>
+    </div>
+    <button type="button" class="btn" onclick="addItemRow()">Add Item</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Description</th>
+            <th>Rate</th>
+            <th>Qty</th>
+            <th>Total</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody id="line_items_body">
+        </tbody>
+    </table>
+
+    <input type="hidden" name="line_items" id="line_items_data">
+
+    <div class="total-box">
+        Subtotal: $<input type="text" name="subtotal" id="subtotal" readonly><br>
+        GST (5%): $<input type="text" name="gst" id="gst" readonly><br>
+        Total: <strong>$<input type="text" name="total" id="total" readonly></strong>
+    </div>
+
+    <label>Notes</label>
+    <textarea name="notes" rows="3"></textarea>
+
+    <label>Signature (name or placeholder)</label>
+    <input type="text" name="signature">
+
+    <br>
+    <button type="submit" class="btn">Submit Invoice</button>
+</form>
+
+</body>
+</html>
