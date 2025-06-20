@@ -8,6 +8,8 @@ from datetime import datetime
 from io import BytesIO
 import json
 import pdfkit
+import platform
+
 # ✅ Define DB path first
 DB_PATH = 'timesheets.db'
 
@@ -21,8 +23,13 @@ with sqlite3.connect(DB_PATH) as conn:
         pass
 
 app = Flask(__name__)
-config = pdfkit.configuration()
 app.secret_key = 'alberta-safety-secret-key'
+
+# --- PDFKit Configuration ---
+if platform.system() == "Windows":
+    config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+else:
+    config = pdfkit.configuration(wkhtmltopdf='/usr/bin/wkhtmltopdf')
 
 # --- Ensure DB Exists ---
 if not os.path.exists(DB_PATH):
@@ -57,7 +64,8 @@ if not os.path.exists(DB_PATH):
         total REAL,
         line_items TEXT,
         notes TEXT,
-        signature TEXT
+        signature TEXT,
+        status TEXT DEFAULT 'Pending'
     )''')
     c.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
               ('admin', 'admin123', 'admin'))
@@ -214,8 +222,6 @@ def add_user():
     conn.close()
     return redirect(url_for('dashboard'))
 
-from datetime import datetime
-
 @app.route('/create_invoice', methods=['GET', 'POST'])
 def create_invoice():
     if 'user' not in session:
@@ -258,7 +264,6 @@ def create_invoice():
         today = datetime.now().strftime('%Y-%m-%d')
         return render_template('create_invoice.html', invoice_number=invoice_number, today=today)
 
-
 @app.route('/download_invoice/<int:invoice_id>')
 def download_invoice(invoice_id):
     if 'user' not in session:
@@ -275,47 +280,31 @@ def download_invoice(invoice_id):
         return redirect(url_for('dashboard'))
 
     invoice_dict = {
-        'id': invoice[0],
-        'username': invoice[1],
-        'invoice_number': invoice[2],
-        'date': invoice[3],
-        'customer': invoice[4],
-        'location': invoice[5],
-        'po': invoice[6],
-        'afe': invoice[7],
-        'customer_rep': invoice[8],
-        'safety_rep': invoice[9],
-        'subtotal': float(invoice[10]),
-        'gst': float(invoice[11]),
-        'total': float(invoice[12]),
-        'line_items': [],
-        'notes': invoice[14],
-        'signature': invoice[15]
+        'id': invoice[0], 'username': invoice[1], 'invoice_number': invoice[2], 'date': invoice[3],
+        'customer': invoice[4], 'location': invoice[5], 'po': invoice[6], 'afe': invoice[7],
+        'customer_rep': invoice[8], 'safety_rep': invoice[9], 'subtotal': float(invoice[10]),
+        'gst': float(invoice[11]), 'total': float(invoice[12]), 'line_items': [],
+        'notes': invoice[14], 'signature': invoice[15]
     }
 
-    # Safely parse line items
     try:
         raw_items = json.loads(invoice[13])
-        line_items = []
         for item in raw_items:
-            line_items.append({
+            invoice_dict['line_items'].append({
                 'description': item.get('description', ''),
                 'qty': float(item.get('qty', 0)),
                 'rate': float(item.get('rate', 0))
             })
-        invoice_dict['line_items'] = line_items
     except Exception as e:
         flash(f"Error parsing line items: {e}", "error")
         return redirect(url_for('dashboard'))
 
     rendered = render_template('invoice_pdf.html', invoice=invoice_dict)
     pdf = pdfkit.from_string(rendered, False, configuration=config)
-
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'attachment; filename=Invoice_{invoice_dict['invoice_number']}.pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=Invoice_{invoice_dict["invoice_number"]}.pdf'
     return response
-
 @app.route('/export')
 def export_all():
     if 'user' not in session or session['role'] != 'admin':
@@ -341,11 +330,11 @@ def export_user(username):
         df.to_excel(writer, index=False, sheet_name=username)
     output.seek(0)
     return send_file(output, download_name=f"{username}_timesheets.xlsx", as_attachment=True)
+
 @app.route('/update_invoice_status/<int:invoice_id>', methods=['POST'])
 def update_invoice_status(invoice_id):
     if 'user' not in session or session['role'] != 'admin':
         return redirect(url_for('index'))
-
     new_status = request.form['status']
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -354,11 +343,11 @@ def update_invoice_status(invoice_id):
     conn.close()
     flash("Invoice status updated successfully!", "success")
     return redirect(url_for('dashboard'))
+
 @app.route('/reset_password/<username>', methods=['GET', 'POST'])
 def reset_password(username):
     if 'user' not in session or session['role'] != 'admin':
         return redirect(url_for('index'))
-    
     if request.method == 'POST':
         new_password = request.form['new_password']
         conn = sqlite3.connect(DB_PATH)
@@ -368,8 +357,8 @@ def reset_password(username):
         conn.close()
         flash(f"Password for {username} updated successfully!", "success")
         return redirect(url_for('dashboard'))
-
     return render_template('reset_password.html', username=username)
 
 if __name__ == '__main__':
     app.run(debug=True)
+ 

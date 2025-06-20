@@ -4,4 +4,3 @@ pandas
 openpyxl
 xlsxwriter
 pdfkit
-weasyprint
