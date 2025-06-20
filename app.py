@@ -358,6 +358,19 @@ def reset_password(username):
         flash(f"Password for {username} updated successfully!", "success")
         return redirect(url_for('dashboard'))
     return render_template('reset_password.html', username=username)
+@app.route('/delete_invoice/<int:invoice_id>', methods=['POST'])
+def delete_invoice(invoice_id):
+    if 'user' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM invoices WHERE id=?", (invoice_id,))
+    conn.commit()
+    conn.close()
+
+    flash("Invoice deleted successfully.", "success")
+    return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True)
