@@ -371,6 +371,9 @@ def delete_invoice(invoice_id):
 
     flash("Invoice deleted successfully.", "success")
     return redirect(url_for('dashboard'))
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json')
 
 if __name__ == '__main__':
     app.run(debug=True)
